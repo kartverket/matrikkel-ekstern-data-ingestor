@@ -11,12 +11,20 @@ application {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 dependencies {
     implementation(ktorLibs.server.cio)
     implementation(ktorLibs.server.core)
+    implementation(ktorLibs.server.metrics.micrometer)
+    implementation(ktorLibs.server.callLogging)
+    implementation(ktorLibs.server.callId)
+    implementation(ktorLibs.server.statusPages)
+    implementation(libs.slf4j)
     implementation(libs.logback.classic)
+    implementation(libs.logstash)
+    implementation(libs.ktorUtils)
+    implementation(libs.micrometerPrometheus)
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)

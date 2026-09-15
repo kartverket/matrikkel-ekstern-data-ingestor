@@ -3,8 +3,11 @@ kotlin = "2.4.0"
 logback = "1.5.37"
 
 [libraries]
+slf4j = { module = "org.slf4j:slf4j-api", version = "2.0.18" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+logstash = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
+ktorUtils = { module = "no.kartverket.heimdall.common:ktor-utils", version = "1.2026.09.14-06.39-8d9c917"}
+micrometerPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
