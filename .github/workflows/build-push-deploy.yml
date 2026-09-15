@@ -110,3 +110,86 @@ jobs:
           resource: '.skip/dev.yaml'
           var: |
             image=${{ needs.version.outputs.image }},version=${{ needs.version.outputs.version }}
+
+  deploy-prodtest:
+    name: "Deploy Prodtest"
+    runs-on: ubuntu-latest
+    if: false
+    needs:
+      - version
+      - deploy-dev
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Deploy to prodtest
+        uses: kartverket/matrikkel-actions/heimdall-deploy@main
+        with:
+          cluster: 'atkv3-prod'
+          resource: '.skip/prodtest.yaml'
+          var: |
+            image=${{ needs.version.outputs.image }},version=${{ needs.version.outputs.version }}
+
+  deploy-prod-notifier:
+    name: Slack Notify; Deploy to Production
+    runs-on: ubuntu-latest
+    if: false
+    needs:
+      - version
+      - pharos
+      - package-image
+      - deploy-prodtest
+    outputs:
+      messageId: ${{ steps.slack_notify.outputs.messageId }}
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    steps:
+      - name: Notify slack (Setup)
+        id: slack_notify
+        uses: kartverket/matrikkel-actions/heimdall-approval-notifier/setup@main
+        with:
+          identity: 'matrikkel-ekstern-data-ingestor'
+          environment: 'produksjon'
+          appDescriptor: atkv3-prod:matrikkel-main:matrikkel-ekstern-data-ingestor:${{ needs.version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+  deploy-prod:
+    name: Deploy to prod
+    runs-on: ubuntu-latest
+    if: false
+    needs:
+      - version
+      - deploy-prod-notifier
+    environment:
+      name: production
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Notify slack (Update)
+        uses: kartverket/matrikkel-actions/heimdall-approval-notifier/update@main
+        with:
+          identity: 'matrikkel-ekstern-data-ingestor'
+          environment: 'produksjon'
+          appDescriptor: atkv3-prod:matrikkel-main:matrikkel-ekstern-data-ingestor:${{ needs.version.outputs.version }}
+          messageId: ${{ needs.deploy-prod-notifier.outputs.messageId }}
+          status: ${{ job.status }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Deploy to production
+        uses: kartverket/matrikkel-actions/heimdall-deploy@main
+        with:
+          cluster: 'atkv3-prod'
+          resource: '.skip/prod.yaml'
+          var: |
+            image=${{ needs.version.outputs.image }},version=${{ needs.version.outputs.version }}

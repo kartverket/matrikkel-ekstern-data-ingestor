@@ -3,13 +3,13 @@ kind: Application
 
 metadata:
   name: matrikkel-ekstern-data-ingestor
-  namespace: matrikkel-main
+  namespace: matrikkel-prodtest
 
 spec:
   image: "{{ image }}"
   port: 8050
   ingresses:
-    - matrikkel-ekstern-data-ingestor.atkv3-dev.kartverket-intern.cloud
+    - matrikkel-ekstern-data-ingestor-prodtest.atkv3-prod.kartverket-intern.cloud
   replicas: 1
 
   resources:
@@ -34,6 +34,6 @@ spec:
     path: /internal/metrics
     allowAllMetrics: true
 
-    env:
-      - name: VERSION
-        value: "{{ version }}"
+  env:
+    - name: VERSION
+      value: "{{ version }}"
