@@ -2,8 +2,8 @@ name: "Build and Deploy"
 
 on:
   push:
-    paths:
-      - main
+    branches:
+      - 'main'
   workflow_dispatch:
 
 concurrency:
