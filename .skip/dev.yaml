@@ -34,6 +34,6 @@ spec:
     path: /internal/metrics
     allowAllMetrics: true
 
-    env:
-      - name: VERSION
-        value: "{{ version }}"
+  env:
+    - name: VERSION
+      value: "{{ version }}"
