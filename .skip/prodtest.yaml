@@ -33,3 +33,7 @@ spec:
     port: 8050
     path: /internal/metrics
     allowAllMetrics: true
+
+  env:
+    - name: VERSION
+      value: "{{ version }}"
