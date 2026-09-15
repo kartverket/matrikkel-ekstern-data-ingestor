@@ -1,0 +1,35 @@
+apiVersion: skiperator.kartverket.no/v1alpha1
+kind: Application
+
+metadata:
+  name: matrikkel-ekstern-data-ingestor
+  namespace: matrikkel-main
+
+spec:
+  image: "{{ image }}"
+  port: 8050
+  ingresses:
+    - matrikkel-ekstern-data-ingestor.atkv3-prod.kartverket-intern.cloud
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+  liveness:
+    port: 8050
+    path: /internal/isAlive
+    initialDelay: 10      # default: 0
+    failureThreshold: 6   # default: 3
+  readiness:
+    port: 8050
+    path: /internal/isReady
+    initialDelay: 10      # default: 0
+    failureThreshold: 6   # default: 3
+  prometheus:
+    port: 8050
+    path: /internal/metrics
+    allowAllMetrics: true
