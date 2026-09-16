@@ -25,6 +25,7 @@ dependencies {
     implementation(libs.logstash)
     implementation(libs.ktorUtils)
     implementation(libs.micrometerPrometheus)
+    implementation(libs.kafka.light)
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)

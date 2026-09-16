@@ -8,6 +8,7 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 logstash = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
 ktorUtils = { module = "no.kartverket.heimdall.common:ktor-utils", version = "1.2026.09.14-06.39-8d9c917"}
 micrometerPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
+kafka-light = { module = "no.kartverket.kafkalight:client", version = "unspecified"}
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
