@@ -1,0 +1,77 @@
+package no.kartverket.matrikkel
+
+import io.ktor.http.Url
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopping
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import no.kartverket.matrikkel.kafkaclient.ConsumerRecord
+import no.kartverket.matrikkel.kafkaclient.InitialOffsetPolicy
+import no.kartverket.matrikkel.kafkaclient.MessageConsumer
+import no.kartverket.matrikkel.kafkaclient.StringSerde
+import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
+
+private val kafkaLog = applog
+
+class SafeConsumer<TKey, TValue>(
+    private val client: MessageConsumer<TKey, TValue>
+) {
+    private var running: Boolean = true
+
+    fun stop() {
+        running = false
+    }
+
+    context(scope: CoroutineScope)
+    fun consumeSafely(
+        maxRecords: Int = 100,
+        recordHandler: (ConsumerRecord<TKey, TValue>) -> Unit
+    ) {
+        scope.launch {
+            while (running) {
+                runCatching {
+                    val response = client.poll(maxRecords = maxRecords)
+                    withTransaction {
+                        response.records.forEach(recordHandler)
+                    }
+                    client.commitSync()
+                }
+            }
+        }
+    }
+
+    private fun withTransaction(function: () -> Unit) {
+        function()
+    }
+}
+
+
+
+
+fun Application.configureConsumer(config: Configuration) {
+    val kafkaConfig = MessageConsumer.Config(
+        server = Url(config.kafkaUrl ?: ""),
+        topic = "my-topic",
+        keySerializer = StringSerde,
+        valueSerializer = StringSerde,
+        correlationIdProvider = { UUID.randomUUID().toString() },
+        maxRetries = 3,
+        consumerGroup = "my-consumer-group",
+        instanceId = "my-instance-1",
+        timeout = 10.seconds,
+        maxRecords = 100,
+        initialOffsetPolicy = InitialOffsetPolicy.LATEST,
+    )
+
+    val consumer: SafeConsumer<String, String> = SafeConsumer(MessageConsumer.Impl(kafkaConfig))
+
+    monitor.subscribe(ApplicationStopping) { consumer.stop() }
+
+    launch(Dispatchers.IO) {
+        consumer.consumeSafely(maxRecords = kafkaConfig.maxRecords) { record ->
+            kafkaLog.info("Polled ${record.key} - ${record.value}")
+        }
+    }
+}
