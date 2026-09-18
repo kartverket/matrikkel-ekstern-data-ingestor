@@ -42,10 +42,18 @@ class SafeConsumer<TKey, TValue>(
         }
     }
 
-    override fun close() {
+    fun stop() {
         running = false
+    }
+
+    suspend fun awaitClosed() {
+        closingCompleted.await()
+    }
+
+    override fun close() {
+        stop()
         runBlocking {
-            closingCompleted.await()
+            awaitClosed()
         }
     }
 
