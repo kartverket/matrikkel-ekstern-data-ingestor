@@ -46,7 +46,7 @@ fun runApplication(disableSecurity: Boolean = false) {
             this.version = config.version
         }
         configureRouting()
-        configureConsumer(config)
+        startConsumer(config)
 
     }.start(wait = true)
 }

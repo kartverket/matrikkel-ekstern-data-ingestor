@@ -1,92 +1,42 @@
 package no.kartverket.matrikkel
 
-import io.ktor.http.Url
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStopping
-import io.ktor.utils.io.ReaderScope
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import io.ktor.http.*
+import io.ktor.server.application.*
+import kotlinx.coroutines.*
 import no.kartverket.matrikkel.kafkaclient.ConsumerRecord
 import no.kartverket.matrikkel.kafkaclient.InitialOffsetPolicy
 import no.kartverket.matrikkel.kafkaclient.MessageConsumer
 import no.kartverket.matrikkel.kafkaclient.StringSerde
-import java.util.UUID
-import javax.sql.DataSource
+import java.util.*
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-private val kafkaLog = applog
 
-class SafeConsumer<TKey, TValue>(
-    private val scope: CoroutineScope,
-    private val consumerFactory: () -> MessageConsumer<TKey, TValue>,
-    private val maxRecords: Int = 100,
-    private val recordHandler: suspend (ConsumerRecord<TKey, TValue>) -> Unit,
+suspend fun <TKey, TValue> MessageConsumer<TKey, TValue>.consume(
+    delayDuration: Duration,
+    onRecord: suspend (ConsumerRecord<TKey, TValue>) -> Unit,
 ) {
-    private val mutex = Mutex()
-    private var job: Job? = null
+    this.use { consumer ->
+        while (true) {
+            currentCoroutineContext().ensureActive()
 
-    suspend fun start() = mutex.withLock {
-        if (job?.isActive == true) return@withLock
+            val batch = consumer.poll()
 
-        job = scope.launch(Dispatchers.IO) {
-            val client = consumerFactory()
-
-            client.use {
-                while (isActive) {
-                    runCatching {
-                        val response = client.poll(maxRecords = maxRecords)
-                        for (record in response.records) {
-                            recordHandler(record)
-                        }
-                        client.commitSync()
-                    }
-                }
+            if (batch.records.isEmpty()) {
+                delay(delayDuration)
+                continue
             }
+
+            for (record in batch.records) {
+                onRecord(record)
+            }
+
+            consumer.commitSync()
         }
-    }
-
-    // Cancelling the job (rather than a manual flag) makes shutdown cooperative:
-    // it interrupts the suspended poll() call directly, and cancelAndJoin() suspends
-    // (instead of blocking a thread) until the finally block has closed the client.
-    // Must be called from a different coroutine than the running job itself, or
-    // cancelAndJoin() will hang waiting on its own completion.
-    suspend fun stop() = mutex.withLock {
-        job?.cancelAndJoin()
-        job = null
-    }
-
-    private fun DataSource.withTransaction(block: () -> Unit) {
-        this.connection.autoCommit = false
-        runCatching { block() }
-            .onSuccess { this.connection.commit() }
-            .onFailure { this.connection.rollback() }
-            .getOrThrow()
     }
 }
 
-fun <TKey, TValue> CoroutineScope.launchSafeConsumer(
-    consumerFactory: () -> MessageConsumer<TKey, TValue>,
-    maxRecords: Int = 100,
-    recordHandler: suspend (ConsumerRecord<TKey, TValue>) -> Unit,
-): SafeConsumer<TKey, TValue> =
-    SafeConsumer(
-        scope = this,
-        consumerFactory = consumerFactory,
-        maxRecords = maxRecords,
-        recordHandler = recordHandler,
-    ).also {
-        runBlocking { it.start() }
-    }
-
-context(scope: CoroutineScope)
-fun Application.configureConsumer(config: Configuration) {
+fun Application.startConsumer(config: Configuration) {
     val kafkaConfig = MessageConsumer.Config(
         server = Url(config.kafkaUrl ?: ""),
         topic = "my-topic",
@@ -101,14 +51,14 @@ fun Application.configureConsumer(config: Configuration) {
         initialOffsetPolicy = InitialOffsetPolicy.LATEST,
     )
 
-    val consumer = scope.launchSafeConsumer(
-        consumerFactory = { MessageConsumer.Impl(kafkaConfig) },
-        maxRecords = kafkaConfig.maxRecords,
-    ) { record ->
-        kafkaLog.info("Polled ${record.key} - ${record.value}")
+    val consumer: MessageConsumer<String, String> = MessageConsumer.Impl(kafkaConfig)
+    val job = launch(Dispatchers.IO) {
+        consumer.consume(10.seconds) { record ->
+            applog.info("Polled ${record.key} - ${record.value}")
+        }
     }
 
     monitor.subscribe(ApplicationStopping) {
-        runBlocking { consumer.stop() }
+        runBlocking { job.cancelAndJoin() }
     }
 }
