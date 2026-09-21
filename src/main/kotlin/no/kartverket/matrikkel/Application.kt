@@ -2,6 +2,7 @@ package no.kartverket.matrikkel
 
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.Url
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.plugins.callid.CallId
@@ -13,7 +14,12 @@ import io.ktor.server.response.respond
 import no.kartverket.heimdall.common.ktor.plugins.Metrics
 import no.kartverket.heimdall.common.ktor.plugins.selftest.Selftest
 import no.kartverket.heimdall.common.ktor.utils.KtorServer
+import no.kartverket.matrikkel.kafkaclient.InitialOffsetPolicy
+import no.kartverket.matrikkel.kafkaclient.MessageConsumer
+import no.kartverket.matrikkel.kafkaclient.StringSerde
 import org.slf4j.LoggerFactory
+import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
 val applog = LoggerFactory.getLogger("matrikkel-ekstern-data-ingestor")
@@ -46,7 +52,23 @@ fun runApplication(disableSecurity: Boolean = false) {
             this.version = config.version
         }
         configureRouting()
-        startConsumer(config)
+
+        val dummyKafkaConfig = MessageConsumer.Config(
+            server = Url(config.kafkaUrl ?: ""),
+            topic = "my-topic",
+            keySerializer = StringSerde,
+            valueSerializer = StringSerde,
+            correlationIdProvider = { UUID.randomUUID().toString() },
+            maxRetries = 3,
+            consumerGroup = "my-consumer-group",
+            instanceId = "my-instance-1",
+            timeout = 10.seconds,
+            maxRecords = 100,
+            initialOffsetPolicy = InitialOffsetPolicy.LATEST,
+        )
+        startConsumer(dummyKafkaConfig) { record ->
+            applog.info("Polled ${record.key} - ${record.value}")
+        }
 
     }.start(wait = true)
 }
