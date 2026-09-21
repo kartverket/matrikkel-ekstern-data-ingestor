@@ -66,8 +66,10 @@ fun runApplication(disableSecurity: Boolean = false) {
             maxRecords = 100,
             initialOffsetPolicy = InitialOffsetPolicy.LATEST,
         )
-        startConsumer(dummyKafkaConfig) { record ->
-            applog.info("Polled ${record.key} - ${record.value}")
+        if (false){
+            startConsumer(dummyKafkaConfig) { record ->
+                applog.info("Polled ${record.key} - ${record.value}")
+            }
         }
 
     }.start(wait = true)
