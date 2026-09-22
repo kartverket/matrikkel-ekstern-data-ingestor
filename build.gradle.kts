@@ -26,7 +26,14 @@ dependencies {
     implementation(libs.ktorUtils)
     implementation(libs.kotlin.utils)
     implementation(libs.micrometerPrometheus)
+    implementation(libs.kafka.light)
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
+    testImplementation(libs.bundles.testEcosystem)
+
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
