@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.logback.classic)
     implementation(libs.logstash)
     implementation(libs.ktorUtils)
+    implementation(libs.kotlin.utils)
     implementation(libs.micrometerPrometheus)
 
     testImplementation(kotlin("test"))
