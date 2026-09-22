@@ -22,14 +22,14 @@ import java.util.UUID
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
-val applog = LoggerFactory.getLogger("matrikkel-ekstern-data-ingestor")
+val logger = LoggerFactory.getLogger("matrikkel-ekstern-data-ingestor")
 fun runApplication(disableSecurity: Boolean = false) {
     val config = Configuration()
 
     KtorServer.create(factory = CIO, port = 8050) {
         install(StatusPages) {
             exception<Throwable> { call, cause ->
-                applog.error("Uncaught exception", cause)
+                logger.error("Uncaught exception", cause)
                 call.respond(HttpStatusCode.InternalServerError, "Uncaught exception")
             }
         }
@@ -40,7 +40,7 @@ fun runApplication(disableSecurity: Boolean = false) {
         }
 
         install(CallLogging) {
-            logger = applog
+            this.logger = no.kartverket.matrikkel.logger
             disableDefaultColors()
             filter { call -> call.request.path().contains("/internal/").not() }
             mdc("RequestId") { it.callId }
@@ -68,7 +68,7 @@ fun runApplication(disableSecurity: Boolean = false) {
         )
         if (false){
             startConsumer(dummyKafkaConfig) { record ->
-                applog.info("Polled ${record.key} - ${record.value}")
+                logger.info("Polled ${record.key} - ${record.value}")
             }
         }
 
