@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.kotlin.utils)
     implementation(libs.micrometerPrometheus)
     implementation(libs.kafka.light)
+    implementation(libs.feature.flags)
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)

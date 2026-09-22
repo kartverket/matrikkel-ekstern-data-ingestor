@@ -11,6 +11,7 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.request.path
 import io.ktor.server.response.respond
+import no.kartverket.heimdall.common.featureflags.FeatureToggle
 import no.kartverket.heimdall.common.ktor.plugins.Metrics
 import no.kartverket.heimdall.common.ktor.plugins.selftest.Selftest
 import no.kartverket.heimdall.common.ktor.utils.KtorServer
@@ -54,7 +55,7 @@ fun runApplication(disableSecurity: Boolean = false) {
         configureRouting()
 
         val dummyKafkaConfig = MessageConsumer.Config(
-            server = Url(config.kafkaUrl ?: ""),
+            server = Url(config.kafkaUrl),
             topic = "my-topic",
             keySerializer = StringSerde,
             valueSerializer = StringSerde,
@@ -66,11 +67,21 @@ fun runApplication(disableSecurity: Boolean = false) {
             maxRecords = 100,
             initialOffsetPolicy = InitialOffsetPolicy.LATEST,
         )
-        if (false){
+
+        val ctxProvider = FeatureToggle.ContextProvider {
+            mapOf(
+                FeatureToggle.CtxKeys.ENVIRONMENT to config.environment,
+            )
+        }
+        val posthogService =
+            if (config.environment != "local") FeatureToggle.remoteEvaluation(globalContextProvider = ctxProvider) else FeatureToggle.MockImpl()
+
+        if (posthogService.isActive("dummy-flag")) {
             startConsumer(dummyKafkaConfig) { record ->
                 logger.info("Polled ${record.key} - ${record.value}")
             }
         }
+        posthogService.close()
 
     }.start(wait = true)
 }
