@@ -38,6 +38,11 @@ spec:
     application:
       enabled: true
 
+  accessPolicy:
+    outbound:
+      rules:
+        - application: matrikkel-kafka-light
+
   env:
     - name: VERSION
       value: "{{ version }}"
