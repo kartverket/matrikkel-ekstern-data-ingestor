@@ -1,26 +1,23 @@
 [versions]
 kotlin = "2.4.0"
-logback = "1.5.37"
-mockk = "1.14.5"
 junitVersion = "6.1.3"
-assertk = "0.28.1"
-kotlinxCoroutinesTest = "1.11.0"
-heimdallCommon = "1.2026.09.23-06.21-1381522"
+heimdallCommon = "1.2026.09.23-07.21-211005a"
 
 [libraries]
 slf4j = { module = "org.slf4j:slf4j-api", version = "2.0.18" }
-logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+logbackClassic = { module = "ch.qos.logback:logback-classic", version = "1.5.37" }
 logstash = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
-ktorUtils = { module = "no.kartverket.heimdall.common:ktor-utils", version.ref = "heimdallCommon"}
-kotlinUtils = { module = "no.kartverket.heimdall.common:kotlin-utils", version.ref = "heimdallCommon"}
-tokenClient = { module = "no.kartverket.heimdall.common:token-client", version.ref = "heimdallCommon"}
+common-ktorUtils = { module = "no.kartverket.heimdall.common:ktor-utils", version.ref = "heimdallCommon"}
+common-kotlinUtils = { module = "no.kartverket.heimdall.common:kotlin-utils", version.ref = "heimdallCommon"}
+common-tokenClient = { module = "no.kartverket.heimdall.common:token-client", version.ref = "heimdallCommon"}
+common-featureFlags = { module = "no.kartverket.heimdall.common:feature-flags", version.ref = "heimdallCommon" }
+kafkaLight-client = { module = "no.kartverket.kafkalight:client", version = "2026.09.18-06.50-a8e4ad5"}
 micrometerPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.0" }
-kafkaLight = { module = "no.kartverket.kafkalight:client", version = "2026.09.18-06.50-a8e4ad5"}
-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk = { module = "io.mockk:mockk", version = "1.14.5" }
 junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junitVersion" }
 junitEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitVersion" }
-assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
-kotlinxCoroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+assertk = { module = "com.willowtreeapps.assertk:assertk", version = "0.28.1" }
+kotlinxCoroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version = "1.11.0" }
 
 [bundles]
 testEcosystem = [

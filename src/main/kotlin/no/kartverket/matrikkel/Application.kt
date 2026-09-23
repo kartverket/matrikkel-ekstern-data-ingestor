@@ -1,13 +1,16 @@
 package no.kartverket.matrikkel
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.cio.*
-import io.ktor.server.plugins.callid.*
-import io.ktor.server.plugins.calllogging.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.install
+import io.ktor.server.cio.CIO
+import io.ktor.server.plugins.callid.CallId
+import io.ktor.server.plugins.callid.callId
+import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.path
+import io.ktor.server.response.respond
+import no.kartverket.heimdall.common.featureflags.FeatureToggle
 import no.kartverket.heimdall.common.ktor.plugins.Metrics
 import no.kartverket.heimdall.common.ktor.plugins.selftest.Selftest
 import no.kartverket.heimdall.common.ktor.utils.KtorServer
@@ -66,11 +69,24 @@ fun runApplication(disableSecurity: Boolean = false) {
             maxRecords = 100,
             initialOffsetPolicy = InitialOffsetPolicy.LATEST,
         )
-        if (false) {
+
+        val ctxProvider = FeatureToggle.ContextProvider {
+            mapOf(
+                FeatureToggle.CtxKeys.ENVIRONMENT to config.environment,
+            )
+        }
+
+        val posthogService = when (config.environment) {
+            "local" -> FeatureToggle.MockImpl()
+            else -> FeatureToggle.remoteEvaluation(globalContextProvider = ctxProvider)
+        }
+
+        if (posthogService.isActive(FeatureFlags.DUMMY)) {
             startConsumer(dummyKafkaConfig) { record ->
                 logger.info("Polled ${record.key} - ${record.value}")
             }
         }
+        posthogService.close()
 
     }.start(wait = true)
 }

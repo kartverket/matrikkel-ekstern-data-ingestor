@@ -45,3 +45,5 @@ spec:
       value: "http://matrikkel-kafka-light.matrikkel-prodtest:8081"
     - name: KAFKA_BROKER_SCOPE
       value: "atkv-prod:matrikkel-prodtest:matrikkel-kafka-light"
+    - name: ENVIRONMENT
+      value: "staging"
