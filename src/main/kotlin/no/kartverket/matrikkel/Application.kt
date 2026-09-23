@@ -2,7 +2,6 @@ package no.kartverket.matrikkel
 
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.Url
 import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.plugins.callid.CallId
@@ -15,11 +14,13 @@ import no.kartverket.heimdall.common.featureflags.FeatureToggle
 import no.kartverket.heimdall.common.ktor.plugins.Metrics
 import no.kartverket.heimdall.common.ktor.plugins.selftest.Selftest
 import no.kartverket.heimdall.common.ktor.utils.KtorServer
+import no.kartverket.heimdall.common.tokenclient.TokenClientFactory
 import no.kartverket.matrikkel.kafkaclient.InitialOffsetPolicy
 import no.kartverket.matrikkel.kafkaclient.MessageConsumer
 import no.kartverket.matrikkel.kafkaclient.StringSerde
+import no.kartverket.matrikkel.utils.asKafkaAuth
 import org.slf4j.LoggerFactory
-import java.util.UUID
+import java.util.*
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
@@ -52,11 +53,12 @@ fun runApplication(disableSecurity: Boolean = false) {
             this.appname = "matrikkel-ekstern-data-ingestor"
             this.version = config.version
         }
-        configureRouting()
 
         val dummyKafkaConfig = MessageConsumer.Config(
-            server = Url(config.kafkaUrl),
+            server = config.kafkaBrokerUrl,
             topic = "my-topic",
+            authentication = TokenClientFactory.MachineToMachine.azureAd()
+                .asKafkaAuth(config.kafkaBrokerScope),
             keySerializer = StringSerde,
             valueSerializer = StringSerde,
             correlationIdProvider = { UUID.randomUUID().toString() },
@@ -73,10 +75,13 @@ fun runApplication(disableSecurity: Boolean = false) {
                 FeatureToggle.CtxKeys.ENVIRONMENT to config.environment,
             )
         }
-        val posthogService =
-            if (config.environment != "local") FeatureToggle.remoteEvaluation(globalContextProvider = ctxProvider) else FeatureToggle.MockImpl()
 
-        if (posthogService.isActive("dummy-flag")) {
+        val posthogService = when (config.environment) {
+            "local" -> FeatureToggle.MockImpl()
+            else -> FeatureToggle.remoteEvaluation(globalContextProvider = ctxProvider)
+        }
+
+        if (posthogService.isActive(FeatureFlags.DUMMY)) {
             startConsumer(dummyKafkaConfig) { record ->
                 logger.info("Polled ${record.key} - ${record.value}")
             }
