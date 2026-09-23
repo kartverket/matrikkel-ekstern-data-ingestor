@@ -1,24 +1,23 @@
 package no.kartverket.matrikkel
 
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.Url
-import io.ktor.server.application.install
-import io.ktor.server.cio.CIO
-import io.ktor.server.plugins.callid.CallId
-import io.ktor.server.plugins.callid.callId
-import io.ktor.server.plugins.calllogging.CallLogging
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.request.path
-import io.ktor.server.response.respond
+import io.ktor.http.*
+import io.ktor.server.application.*
+import io.ktor.server.cio.*
+import io.ktor.server.plugins.callid.*
+import io.ktor.server.plugins.calllogging.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import no.kartverket.heimdall.common.ktor.plugins.Metrics
 import no.kartverket.heimdall.common.ktor.plugins.selftest.Selftest
 import no.kartverket.heimdall.common.ktor.utils.KtorServer
+import no.kartverket.heimdall.common.tokenclient.TokenClientFactory
 import no.kartverket.matrikkel.kafkaclient.InitialOffsetPolicy
 import no.kartverket.matrikkel.kafkaclient.MessageConsumer
 import no.kartverket.matrikkel.kafkaclient.StringSerde
+import no.kartverket.matrikkel.utils.asKafkaAuth
 import org.slf4j.LoggerFactory
-import java.util.UUID
+import java.util.*
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 
@@ -53,8 +52,10 @@ fun runApplication(disableSecurity: Boolean = false) {
         }
 
         val dummyKafkaConfig = MessageConsumer.Config(
-            server = Url(config.kafkaUrl ?: ""),
+            server = config.kafkaBrokerUrl,
             topic = "my-topic",
+            authentication = TokenClientFactory.MachineToMachine.azureAd()
+                .asKafkaAuth(config.kafkaBrokerScope),
             keySerializer = StringSerde,
             valueSerializer = StringSerde,
             correlationIdProvider = { UUID.randomUUID().toString() },
@@ -65,7 +66,7 @@ fun runApplication(disableSecurity: Boolean = false) {
             maxRecords = 100,
             initialOffsetPolicy = InitialOffsetPolicy.LATEST,
         )
-        if (false){
+        if (false) {
             startConsumer(dummyKafkaConfig) { record ->
                 logger.info("Polled ${record.key} - ${record.value}")
             }
