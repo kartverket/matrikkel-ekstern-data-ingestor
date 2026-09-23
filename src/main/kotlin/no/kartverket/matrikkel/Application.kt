@@ -51,7 +51,6 @@ fun runApplication(disableSecurity: Boolean = false) {
             this.appname = "matrikkel-ekstern-data-ingestor"
             this.version = config.version
         }
-        configureRouting()
 
         val dummyKafkaConfig = MessageConsumer.Config(
             server = Url(config.kafkaUrl ?: ""),
