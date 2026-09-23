@@ -8,7 +8,7 @@ kotlinxCoroutinesTest = "1.11.0"
 heimdall-common-utils = "1.2026.09.22-11.33-3cc3657"
 
 [libraries]
-slf4j = { module = "org.slf4j:slf4j-api", version = "2.0.18" }
+slf4j = { module = "org.slf4j:slf4j-api", version = "2.0.19" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logstash = { module = "net.logstash.logback:logstash-logback-encoder", version = "9.0" }
 ktorUtils = { module = "no.kartverket.heimdall.common:ktor-utils", version.ref = "heimdall-common-utils" }
