@@ -39,3 +39,5 @@ spec:
       value: "{{ version }}"
     - name: KAFKA_URL
       value: "matrikkel-kafka-light-prodtest.atkv3-prod.kartverket-intern.cloud"
+    - name: ENVIRONMENT
+      value: "staging"
