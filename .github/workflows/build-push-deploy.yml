@@ -51,7 +51,7 @@ jobs:
       - name: Build app
         run: ./gradlew installDist --no-daemon
         env:
-          PACKAGES_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGES_TOKEN: ${{ secrets.SHARED_PACKAGES_READ_PAT }}
 
       - name: Build Docker image
         uses: docker/build-push-action@v7
