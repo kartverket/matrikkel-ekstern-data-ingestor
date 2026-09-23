@@ -34,10 +34,21 @@ spec:
     path: /internal/metrics
     allowAllMetrics: true
 
+  azure:
+    application:
+      enabled: true
+
+  accessPolicy:
+    outbound:
+      rules:
+        - application: matrikkel-kafka-light
+
   env:
     - name: VERSION
       value: "{{ version }}"
-    - name: KAFKA_URL
-      value: "matrikkel-kafka-light-prodtest.atkv3-prod.kartverket-intern.cloud"
+    - name: KAFKA_BROKER_URL
+      value: "http://matrikkel-kafka-light.matrikkel-prodtest:8081"
+    - name: KAFKA_BROKER_SCOPE
+      value: "atkv-prod:matrikkel-prodtest:matrikkel-kafka-light"
     - name: ENVIRONMENT
       value: "staging"
