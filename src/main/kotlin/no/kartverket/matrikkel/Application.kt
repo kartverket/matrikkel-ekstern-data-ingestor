@@ -54,17 +54,18 @@ fun runApplication(disableSecurity: Boolean = false) {
             this.version = config.version
         }
 
-        val dummyKafkaConfig = MessageConsumer.Config(
+
+        val sergFormuesobjektConfig = MessageConsumer.Config(
             server = config.kafkaBrokerUrl,
-            topic = "my-topic",
+            topic = Topics.SERG_FORMUESOBJEKT.value,
             authentication = TokenClientFactory.MachineToMachine.azureAd()
                 .asKafkaAuth(config.kafkaBrokerScope),
             keySerializer = StringSerde,
             valueSerializer = StringSerde,
             correlationIdProvider = { UUID.randomUUID().toString() },
             maxRetries = 3,
-            consumerGroup = "my-consumer-group",
-            instanceId = "my-instance-1",
+            consumerGroup = "matrikkel-ekstern-data-ingestor",
+            instanceId = UUID.randomUUID().toString(),
             timeout = 10.seconds,
             maxRecords = 100,
             initialOffsetPolicy = InitialOffsetPolicy.LATEST,
@@ -81,8 +82,8 @@ fun runApplication(disableSecurity: Boolean = false) {
             else -> FeatureToggle.remoteEvaluation(globalContextProvider = ctxProvider)
         }
 
-        if (posthogService.isActive(FeatureFlags.DUMMY)) {
-            startConsumer(dummyKafkaConfig) { record ->
+        if (posthogService.isActive(FeatureFlags.ON_REDEPLOY_SERG_FORMUESOBJEKT)) {
+            startConsumer(sergFormuesobjektConfig) { record ->
                 logger.info("Polled ${record.key} - ${record.value}")
             }
         }

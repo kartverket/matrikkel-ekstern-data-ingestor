@@ -13,5 +13,9 @@ data class Configuration(
 )
 
 enum class FeatureFlags(override val value: String) : FeatureToggle.Flag {
-    DUMMY("dummy-flag")
+    ON_REDEPLOY_SERG_FORMUESOBJEKT("on-redeploy-serg-formuesobjekt"),
+}
+
+enum class Topics(val value: String)  {
+    SERG_FORMUESOBJEKT("SERG_FORMUESOBJEKT_FAST_EIENDOM")
 }
