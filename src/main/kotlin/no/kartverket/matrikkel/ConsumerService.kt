@@ -9,7 +9,7 @@ import kotlin.time.Duration.Companion.seconds
 
 
 suspend fun <TKey, TValue> MessageConsumer<TKey, TValue>.consume(
-    delayDuration: Duration,
+    delayOnEmpty: Duration,
     onRecord: suspend (ConsumerRecord<TKey, TValue>) -> Unit,
 ) {
     this.use { consumer ->
@@ -19,7 +19,7 @@ suspend fun <TKey, TValue> MessageConsumer<TKey, TValue>.consume(
             val batch = consumer.poll()
 
             if (batch.records.isEmpty()) {
-                delay(delayDuration)
+                delay(delayOnEmpty)
                 continue
             }
 
