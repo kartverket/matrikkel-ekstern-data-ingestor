@@ -14,6 +14,7 @@ kotlin {
     jvmToolchain(25)
 }
 dependencies {
+    implementation(project(":tjenestespesifikasjoner:serg"))
     implementation(ktorLibs.server.cio)
     implementation(ktorLibs.server.core)
     implementation(ktorLibs.server.metrics.micrometer)

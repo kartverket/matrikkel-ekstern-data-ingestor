@@ -15,10 +15,12 @@ import no.kartverket.heimdall.common.ktor.plugins.Metrics
 import no.kartverket.heimdall.common.ktor.plugins.selftest.Selftest
 import no.kartverket.heimdall.common.ktor.utils.KtorServer
 import no.kartverket.heimdall.common.tokenclient.TokenClientFactory
+import no.kartverket.matrikkel.config.JsonSerde
 import no.kartverket.matrikkel.kafkaclient.InitialOffsetPolicy
+import no.kartverket.matrikkel.kafkaclient.LongSerde
 import no.kartverket.matrikkel.kafkaclient.MessageConsumer
-import no.kartverket.matrikkel.kafkaclient.StringSerde
 import no.kartverket.matrikkel.utils.asKafkaAuth
+import no.kartverket.tjenestespesifikasjoner.serg.formueobjekt.models.FastEiendomSomFormuesobjekt
 import org.slf4j.LoggerFactory
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
@@ -60,8 +62,8 @@ fun runApplication(disableSecurity: Boolean = false) {
             topic = Topics.SERG_FORMUESOBJEKT.value,
             authentication = TokenClientFactory.MachineToMachine.azureAd()
                 .asKafkaAuth(config.kafkaBrokerScope),
-            keySerializer = StringSerde,
-            valueSerializer = StringSerde,
+            keySerializer = LongSerde,
+            valueSerializer = JsonSerde<FastEiendomSomFormuesobjekt>(),
             correlationIdProvider = { UUID.randomUUID().toString() },
             maxRetries = 3,
             consumerGroup = "matrikkel-ekstern-data-ingestor",
