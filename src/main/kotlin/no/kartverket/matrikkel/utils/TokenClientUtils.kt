@@ -9,6 +9,7 @@ fun MachineToMachineTokenClient.asKafkaAuth(scope: String) = this.bindTo(scope).
 fun MachineToMachineTokenClient.asKafkaAuth(scope: DownstreamApi) = this.bindTo(scope).asKafkaAuth()
 fun BoundMachineToMachineTokenClient.asKafkaAuth() = object : ClientAuthentication {
     override fun getAuthenticationHeaderValue(): String {
-        return this@asKafkaAuth.createToken().serialize()
+        val token = this@asKafkaAuth.createToken().serialize()
+        return "Bearer $token"
     }
 }
