@@ -7,6 +7,7 @@ plugins {
 dependencies {
     api(libs.bundles.kotlinxEcosystem)
     api(libs.bundles.ktorClientEcosystem)
+    api(libs.bundles.jackson)
     api(libs.okhttp)
 }
 
@@ -25,6 +26,7 @@ openApiGenerate {
     library = "jvm-okhttp4"
     configOptions.put("dateLibrary", "java8")
     configOptions.put("serializationLibrary", "jackson")
+    configOptions.put("useJackson3", "true")
 
     globalProperties.put("apis", "false")
     globalProperties.put("models", "false")

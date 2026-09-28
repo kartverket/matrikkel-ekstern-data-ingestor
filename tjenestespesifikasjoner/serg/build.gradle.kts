@@ -10,6 +10,7 @@ plugins {
 dependencies {
     api(libs.bundles.kotlinxEcosystem)
     api(libs.bundles.ktorClientEcosystem)
+    api(libs.bundles.jackson)
     api(libs.okhttp)
     api(project(":tjenestespesifikasjoner:openapi-infrastructure"))
 }
@@ -32,6 +33,8 @@ tasks.register<GenerateTask>("generateForFormueobjekt") {
     library = "jvm-okhttp4"
     configOptions.put("dateLibrary", "java8")
     configOptions.put("serializationLibrary", "jackson")
+    configOptions.put("useJackson3", "true")
+
     typeMappings.put("string+date-time", "LocalDateTime")
     apiPackage = "no.kartverket.tjenestespesifikasjoner.serg.formueobjekt.apis"
     modelPackage = "no.kartverket.tjenestespesifikasjoner.serg.formueobjekt.models"
