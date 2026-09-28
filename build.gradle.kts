@@ -30,6 +30,11 @@ dependencies {
     implementation(libs.common.featureFlags)
     implementation(libs.micrometerPrometheus)
     implementation(libs.kafkaLight.client)
+    implementation(libs.bundles.matrikkel){
+        exclude(group = "no.statkart.matrikkel")
+        exclude(group = "org.geotools.jdbc")
+        exclude(group = "org.geotools")
+    }
 
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
