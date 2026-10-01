@@ -35,6 +35,8 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version = "5.5.0" }
 matServer = { module = "no.statkart.matrikkel:mat-server", version.ref = "matrikkel" }
 matHbm = { module = "no.statkart.matrikkel:mat-server-hbm", version.ref = "matrikkel" }
 matApi = { module = "no.statkart.matrikkel:mat-api", version.ref = "matrikkel" }
+tomeePlusBom = { module = 'org.apache.tomee.bom:tomee-plus', version = '10.2.0' }
+
 
 
 [bundles]
