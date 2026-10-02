@@ -26,5 +26,8 @@ dependencyResolutionManagement {
     }
 }
 
+include(":tjenestespesifikasjoner:openapi-infrastructure")
+include(":tjenestespesifikasjoner:serg")
+
 rootProject.name = "matrikkel-ekstern-data-ingestor"
 
