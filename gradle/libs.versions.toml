@@ -11,7 +11,7 @@ common-ktorUtils = { module = "no.kartverket.heimdall.common:ktor-utils", versio
 common-kotlinUtils = { module = "no.kartverket.heimdall.common:kotlin-utils", version.ref = "heimdallCommon"}
 common-tokenClient = { module = "no.kartverket.heimdall.common:token-client", version.ref = "heimdallCommon"}
 common-featureFlags = { module = "no.kartverket.heimdall.common:feature-flags", version.ref = "heimdallCommon" }
-kafkaLight-client = { module = "no.kartverket.kafkalight:client", version = "2026.09.18-06.50-a8e4ad5"}
+kafkaLight-client = { module = "no.kartverket.kafkalight:client", version = "2026.10.06-07.27-c421a47"}
 micrometerPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version = "1.17.1" }
 mockk = { module = "io.mockk:mockk", version = "1.14.11" }
 junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junitVersion" }
